@@ -3,7 +3,7 @@ import tempfile
 import logging
 import torch
 import torchaudio
-import whisper
+import whisperA
 import asyncio
 import time
 import threading
@@ -62,20 +62,19 @@ async def generate_audio_from_text(text: str):
 # Endpoint to receive text and return the generated audio (Text-to-Speech)
 @app.route("/speak", methods=["POST"])
 async def speak():
-    # Receive the text from the request body
-    data = await request.get_json()
+    data = request.get_json()
     text = data.get("text", "")
-    
+
     if not text:
-        return "No text provided", 400  # Return error if no text is provided
+        return "No text provided", 400
     
     logging.info("Received text for TTS: %s", text)
-    
+
     # Generate audio from the received text
     audio_buffer = await generate_audio_from_text(text)
-    
-    # Return the generated audio as a file
+
     return send_file(audio_buffer, mimetype="audio/wav", as_attachment=True, download_name="output_audio.wav")
+
 
 # Endpoint to receive audio and return the transcribed text (Speech-to-Text)
 @app.route("/transcribe", methods=["POST"])
