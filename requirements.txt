@@ -4,3 +4,4 @@ torchaudio
 whisper
 ChatTTS
 numpy
+dotenv
