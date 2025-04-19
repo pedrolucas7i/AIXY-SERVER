@@ -51,7 +51,7 @@ def generate_audio_from_text(text: str):
 
     buffer = io.BytesIO()
     for i, wav in enumerate(wavs):
-        torchaudio.save(buffer, torch.from_numpy(wav).unsqueeze(0), 24000)
+        torchaudio.save(buffer, torch.from_numpy(wav).unsqueeze(0), 24000, format="wav")
 
     buffer.seek(0)
     return buffer
