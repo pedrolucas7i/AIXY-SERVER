@@ -3,10 +3,19 @@ Description=Gunicorn instance for AI Flask app
 After=network.target
 
 [Service]
-User=pedrolucas
+User=root
 Group=sudo
-WorkingDirectory=/home/pedrolucas/AIXY-SERVER
-ExecStart=/usr/local/bin/gunicorn -w 29 -b 0.0.0.0:PORT app:app
+WorkingDirectory=/home/pedrolucas/AIXY-SERVER/
+Environment="FLASK_APP=/home/pedrolucas/AIXY-SERVER/app.py"
+Environment="FLASK_ENV=production"
+ExecStart=/home/pedrolucas/.virtualenvs/yourenv/bin/gunicorn --workers 29 --bind 0.0.0.0:9060 --access-logfile /var/log/ttsstt/access.log --error-logfile /var/log/ttsstt/error.log app:app
+
+# Reload service when the app crashes
+Restart=always
+RestartSec=5
+
+# Set limits for the Gunicorn process (to avoid resource exhaustion)
+LimitNOFILE=65535
 
 [Install]
 WantedBy=multi-user.target
