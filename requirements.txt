@@ -6,3 +6,4 @@ whisper
 ChatTTS
 numpy
 dotenv
+gunicorn
