@@ -3,7 +3,7 @@ import tempfile
 import logging
 import torch
 import torchaudio
-import whisperA
+import whisper
 import asyncio
 import time
 import threading
