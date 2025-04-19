@@ -1,0 +1,6 @@
+Flask
+torch
+torchaudio
+whisper
+ChatTTS
+numpy
