@@ -13,9 +13,9 @@ import dotenv
 
 # Load environment variables
 dotenv.load_dotenv()
-
 # Set the environment variable to restrict to CPU
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -26,9 +26,9 @@ app = Flask(__name__)
 device = "cpu"
 logging.info(f"Using device: {device}")
 
-# Load higher-quality Whisper model
+# Load Whisper model (using medium model for better performance)
 logging.info("Loading Whisper model (medium)")
-whisper_model = whisper.load_model("medium.en").to(device)
+whisper_model = whisper.load_model("small.en").to(device)
 
 # Initialize ChatTTS
 logging.info("Initializing ChatTTS")
@@ -50,16 +50,18 @@ params_infer_code = ChatTTS.Chat.InferCodeParams(
 # Thread pool executor for async processing
 executor = ThreadPoolExecutor(max_workers=4)
 
-# Generate speech audio from text
+# Generate speech audio from text (without caching)
 def generate_audio_from_text(text: str):
     logging.info(f"Generating audio from text: {text}")
+
+    # Generate the audio
     wavs = chat.infer([text], params_infer_code=params_infer_code)
     buffer = io.BytesIO()
     wav_write(buffer, 24000, (wavs[0] * 32767).astype("int16"))
     buffer.seek(0)
     return buffer
 
-# TTS endpoint
+# TTS endpoint to handle speech synthesis
 @app.route("/speak", methods=["POST"])
 def speak():
     data = request.get_json()
@@ -67,12 +69,13 @@ def speak():
     if not text:
         return "No text provided", 400
 
+    # Execute TTS in background using the executor to avoid blocking the main thread
     future = executor.submit(generate_audio_from_text, text)
     audio_buffer = future.result()
 
     return send_file(audio_buffer, mimetype="audio/wav", as_attachment=True, download_name="output_audio.wav")
 
-# STT endpoint
+# STT endpoint to transcribe audio to text
 @app.route("/transcribe", methods=["POST"])
 def transcribe():
     if "audio" not in request.files:
@@ -89,25 +92,6 @@ def transcribe():
 
     return jsonify({"text": result.get("text", "").strip()})
 
-# Optional background TTS function (internal usage)
-def text_to_speech(message):
-    logging.info(f"Converting message to speech: {message}")
-    
-    def play_speech():
-        try:
-            time.sleep(0.5)
-            wavs = chat.infer([message], params_infer_code=params_infer_code)
-            audio_buffer = io.BytesIO()
-            wav_write(audio_buffer, 24000, (wavs[0] * 32767).astype("int16"))
-            audio_buffer.seek(0)
-            logging.info("Speech playback completed")
-            return audio_buffer
-        except Exception as e:
-            logging.error(f"An error occurred during speech playback: {str(e)}")
-
-    thread = threading.Thread(target=play_speech)
-    thread.start()
-
-# Run development server
+# Run the app (preferably use Gunicorn in production)
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 9960)), use_reloader=False)
