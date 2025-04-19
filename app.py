@@ -92,6 +92,6 @@ def transcribe():
 
     return jsonify({"text": result.get("text", "").strip()})
 
-# Run the app (preferably use Gunicorn in production)
+# Run the app (preferably use Gunicorn in production), if you will use Gunicorn comment the forward lines
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 9960)), use_reloader=False)
