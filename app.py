@@ -10,6 +10,9 @@ import threading
 from flask import Flask, request, send_file, jsonify
 import io
 import ChatTTS
+import dotenv
+
+dotenv.load_dotenv()
 
 # Set the environment variable to restrict to CPU
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
