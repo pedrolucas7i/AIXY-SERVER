@@ -30,7 +30,7 @@ chat = ChatTTS.Chat()
 chat.load(compile=True)
 
 # Path to the downloaded .pt embedding file
-embedding_path = "/home/pedrolucas/Documents/AIXY/seed_1528.pt"
+embedding_path = "./seed_1528.pt"
 # Load the speaker embedding (use CPU)
 spk = torch.load(embedding_path, map_location=torch.device('cpu'))
 
