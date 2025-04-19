@@ -1,0 +1,16 @@
+[Unit]
+Description=Ollama AI Server (ROOT)
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/env OLAMA_HOST=0.0.0.0 ollama serve
+User=root
+Restart=always
+RestartSec=5
+Environment="OLLAMA_HOST=0.0.0.0"
+WorkingDirectory=/root
+StandardOutput=append:/var/log/ollama.log
+StandardOutput=append:/var/log/ollama.log
+
+[Install]
+WantedBy=multi-user.target
