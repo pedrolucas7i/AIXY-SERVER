@@ -1,0 +1,18 @@
+[Unit]
+Description=Whisper STT Server (Flask)
+After=network.target
+
+[Service]
+User=pedrolucas
+Group=pedrolucas
+WorkingDirectory=/home/pedrolucas/AIXY-SERVER
+ExecStart=/usr/bin/python3 /home/pedrolucas/AIXY-SERVER/app.py
+Environment="PORT=9960"
+Environment="CUDA_VISIBLE_DEVICES="  # Ensures CPU only
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
