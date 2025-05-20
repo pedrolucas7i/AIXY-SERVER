@@ -5,6 +5,7 @@ import logging
 import whisper
 from flask import Flask, request, jsonify
 from scipy.io.wavfile import write as wav_write
+from flask_cors import CORS
 
 # Load environment variables
 try:
