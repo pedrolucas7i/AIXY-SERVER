@@ -5,7 +5,6 @@ import logging
 import whisper
 from flask import Flask, request, jsonify
 from scipy.io.wavfile import write as wav_write
-from flask_cors import CORS
 
 # Load environment variables
 try:
@@ -22,7 +21,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app, origins=["*"])
 
 # Set device to CPU
 device = "cpu"
@@ -51,4 +49,4 @@ def transcribe():
 
 # Run the Flask server
 if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 9960)), use_reloader=False, ssl_context=("cert.pem", "key.pem"))
+    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 9960)), use_reloader=False)
