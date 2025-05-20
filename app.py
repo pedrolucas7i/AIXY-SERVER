@@ -21,6 +21,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # Initialize Flask app
 app = Flask(__name__)
+CORS(app)
 
 # Set device to CPU
 device = "cpu"
