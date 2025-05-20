@@ -49,4 +49,4 @@ def transcribe():
 
 # Run the Flask server
 if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 9960)), use_reloader=False)
+    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 9960)), use_reloader=False, ssl_context='adhoc')
