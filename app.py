@@ -1,45 +1,70 @@
+"""
+===============================================================================================================================================================
+===============================================================================================================================================================
+
+                                                                   _      ___  __  __ __   __  ____         ___  
+                                                                  / \    |_ _| \ \/ / \ \ / / |___ \       / _ \ 
+                                                                 / _ \    | |   \  /   \ V /    __) |     | | | |
+                                                                / ___ \   | |   /  \    | |    / __/   _  | |_| |
+                                                               /_/   \_\ |___| /_/\_\   |_|   |_____| (_)  \___/ 
+
+                                                               
+                                                                            SERVER  TTS/STT   CODE
+                                                                            by Pedro Ribeiro Lucas
+                                                                                                                  
+===============================================================================================================================================================
+===============================================================================================================================================================
+"""
+
 import os
 import io
 import tempfile
 import logging
 import whisper
+import torch
 from flask import Flask, request, jsonify, send_file
 from scipy.io.wavfile import write as wav_write
 from TTS.api import TTS
 
-# Load environment variables
+# ================== CPU THREAD OPTIMIZATION ==================
+os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Force CPU
+os.environ["OMP_NUM_THREADS"] = "28"
+os.environ["OPENBLAS_NUM_THREADS"] = "28"
+os.environ["MKL_NUM_THREADS"] = "28"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "28"
+os.environ["NUMEXPR_NUM_THREADS"] = "28"
+torch.set_num_threads(28)
+# =============================================================
+
+# Load .env if available
 try:
     import dotenv
     dotenv.load_dotenv()
 except ImportError:
     pass
 
-# Force the use of CPU only
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
-
-# Configure logging
+# ========== LOGGING ==========
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# =============================
 
-# Initialize Flask app
+# ========== FLASK APP ==========
 app = Flask(__name__)
-
-# Set device to CPU
 device = "cpu"
 logging.info(f"Using device: {device}")
+# ===============================
 
-# Load Whisper model
+# ========== LOAD MODELS ==========
 logging.info("Loading Whisper model (medium)")
 model = whisper.load_model("medium").to(device)
 
-# Initialize Coqui TTS model
-logging.info("Loading Coqui TTS model")
+logging.info("Loading Coqui TTS model (English)")
 tts_model = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=False)
 
-# Initialize Coqui TTS model for Portuguese
-logging.info("Loading Coqui TTS model for Portuguese")
+logging.info("Loading Coqui TTS model (Portuguese)")
 tts_model_pt = TTS(model_name="tts_models/pt/cv/vits", progress_bar=False)
+# =================================
 
-# Transcription endpoint (STT)
+# ========== TRANSCRIBE (STT) ==========
 @app.route("/transcribe", methods=["POST"])
 def transcribe():
     if "audio" not in request.files:
@@ -51,12 +76,16 @@ def transcribe():
         temp_filename = temp_file.name
 
     logging.info("Transcribing audio...")
-    result = model.transcribe(temp_filename, fp16=False, language='en')
-    os.unlink(temp_filename)
+    try:
+        result = model.transcribe(temp_filename, fp16=False, language='en')
+        text = result.get("text", "").strip()
+    finally:
+        os.unlink(temp_filename)
 
-    return jsonify({"text": result.get("text", "").strip()})
+    return jsonify({"text": text})
+# ======================================
 
-# TTS endpoint
+# ========== TTS (ENGLISH) ==========
 @app.route("/tts", methods=["POST"])
 def tts():
     data = request.get_json()
@@ -65,16 +94,17 @@ def tts():
 
     text = data["text"]
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_wav:
-        temp_wav.close()  # Close so TTS can write to it
+        temp_wav.close()
         tts_model.tts_to_file(text=text, file_path=temp_wav.name)
         wav_path = temp_wav.name
 
-    logging.info("Synthesized speech for text.")
+    logging.info("Synthesized speech for English text.")
     response = send_file(wav_path, mimetype="audio/wav", as_attachment=True, download_name="output.wav")
     os.unlink(wav_path)
     return response
+# ===================================
 
-# TTS endpoint for Portuguese
+# ========== TTS (PORTUGUESE) ==========
 @app.route("/tts-pt", methods=["POST"])
 def tts_pt():
     data = request.get_json()
@@ -83,15 +113,17 @@ def tts_pt():
 
     text = data["text"]
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_wav:
-        temp_wav.close()  # Close so TTS can write to it
+        temp_wav.close()
         tts_model_pt.tts_to_file(text=text, file_path=temp_wav.name)
         wav_path = temp_wav.name
 
-    logging.info("Synthesized Portuguese speech for text.")
+    logging.info("Synthesized speech for Portuguese text.")
     response = send_file(wav_path, mimetype="audio/wav", as_attachment=True, download_name="output_pt.wav")
     os.unlink(wav_path)
     return response
+# =======================================
 
-# Run the Flask server
+# ========== START SERVER ==========
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 9960)), use_reloader=False)
+# ==================================
