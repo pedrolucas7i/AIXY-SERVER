@@ -61,7 +61,7 @@ logging.info("Loading Coqui TTS model (English)")
 tts_model = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=False)
 
 logging.info("Loading Coqui TTS model (Portuguese)")
-tts_model_pt = TTS(model_name="tts_models/pt/cv/vits", progress_bar=False)
+tts_model_pt = TTS(model_name="tts_models/pt/mai/tacotron2-DDC", progress_bar=False)
 # =================================
 
 # ========== TRANSCRIBE (STT) ==========
